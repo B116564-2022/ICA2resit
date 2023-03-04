@@ -1,4 +1,8 @@
 import os
+
+#got  my AP from NCBI, should now work 
+os.environ['NCBI_API_KEY'] = 'cb6b860872dfccb5f04396d6f056d4b36c08'
+
 ###Introducing the program name, purpose and taking values from the users
 while True:
     print("Welcome to OQSIL-Online protein Quality aSsesIng tooL")
