@@ -1,4 +1,5 @@
- import os
+
+import os
 
 #got  my AP from NCBI, should now work 
 os.environ['NCBI_API_KEY'] = 'cb6b860872dfccb5f04396d6f056d4b36c08'
@@ -10,9 +11,8 @@ while True:
     print("Welcome to OQSIL-Online protein Quality aSsesIng tooL")
     oqsil = input("Please enter the name of the protein you would like to analyze: ")
     takson = input("Please enter the Taxon ID(txid): ")
-    print("Connecting to NCBI")
     print(f"Searching for {oqsil} fastas for txid{takson}")
-    print("One more second")
+
     # sending request to ncbi for the with protein name and takson
     query = f'{oqsil}[Protein Name] AND txid{takson}[Organism]'
     search_cmd = f'esearch -db protein -query "{query}" | efetch -format fasta'
@@ -28,7 +28,7 @@ while True:
         print("Downloading all the fastas")
         skachivaem = f'{search_cmd} > {oqsil}.fa'
         os.system(skachivaem)
-        print(f'All {num_results} fastas for txid {takson} have been saved to {oqsil}.fa.')
+        print(f'All {num_results} fastas for txid {takson} have been saved to {oqsil}.fa')
         with open(f'{oqsil}.fa', 'r') as oqsillar:
             fasta_tarkibi = oqsillar.read()
     else:
@@ -47,7 +47,7 @@ while True:
                 print(f"Downloading {oqsil} fasta files for {organism} ")
                 skachivaem = f'{search_cmd} > {oqsil}.fa'
                 os.system(skachivaem)
-                print(f'All {num_results} {oqsil} fastas for {organism} have been downloaded to {oqsil}.fa.')
+                print(f'All {num_results} {oqsil} fastas for {organism} have been downloaded to {oqsil}.fa')
                 with open(f'{oqsil}.fa', 'r') as oqsillar:
                     fasta_tarkibi = oqsillar.read()
         else:
