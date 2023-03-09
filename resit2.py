@@ -41,65 +41,31 @@ while True:
             if keyingi_etap.lower() == 'a':
                 break
             elif keyingi_etap.lower() == 'b':
-                #if the user wants to do some cleaning we will run the analysis through this code, taking the downloaded fastas and cleaning it from non aa elements
-                yuklangan_fasta = f"{oqsil}.fa"
-                # clean fasta sequeneces will be stored here
-                tozalangan_fasta = f"cleaned_{oqsil}.fa"
-                # through this dictionary.
-                toza_sekv = {}
 
-                # reading downloaded fasta file
-                with open(yuklangan_fasta, "r") as f:
-                    lines = f.readlines()
-                    seq_id = None
-                    seq = ""
-                    for line in lines:
-                        line = line.strip()
-                        if line.startswith(">"):
-                            if seq_id:
-                                # removin non-aa characters from the sequence
-                                toza_seq = ''.join(filter(lambda x: x in 'ACDEFGHIKLMNPQRSTVWY-', seq.upper()))
-                                toza_sekv[seq_id] = toza_seq
-                            seq_id = line[1:]
-                            seq = ""
-                        else:
-                            seq += line
-                    # processing the final sequence in the file
-                    toza_seq = ''.join(filter(lambda x: x in 'ACDEFGHIKLMNPQRSTVWY-', seq.upper()))
-                    toza_sekv[seq_id] = toza_seq
 
-                # writing the cleaned sequences to file
-                with open(tozalangan_fasta, "w") as f:
-                    for seq_id, seq in toza_sekv.items():
-                        f.write(f">{seq_id}\n{seq}\n")
-                print(f"All fastas within {oqsil}.fa cleaned and stored in cleaned_{oqsil}.fa")
-                # running Clustal Omega(at least trying but i dont know why its not working, i suspect its becoz of the clening fail, but how to correct it??????)
-                ###i was specifying here the path to clustalo, ("usr/bin/clustalo") but its now gone.  Where? will sort it out later, by now its somehow working |
-                clustalo_ishla = f'clustalo -i {tozalangan_fasta} --outfmt=phylip --full > yakuniy.matrica'
-                ##running clustal o
-                subprocess.run(clustalo_ishla, shell=True, check=True)
-                valid_lines = []
-                #trying to make this stuff work with all the fastas just skipping over the non standard elements, but its finding a problem in eahc line. Errrrrrr
-                with open("yakuniy.matrica", "r") as f:
-                    matriks_chiziq = f.readlines()[1:]  
-                for line in matriks_chiziq:
-                    if "--------------------------------------------------" in line:
-                        continue
-                    if any(c.isalpha() for c in line):
-                        print(f"Skipping line in distance matrix due to invalid format: {line.strip()}")
-                        continue
-                    valid_lines.append(line)
+            # Taking the downloaded file as an input and naming the output file name
+                fasta_fayli = f"{oqsil}.fa"
+                clust_fayli = fasta_fayli[:-3] + ".msf"
 
-                # transforming all this list into an array
-                n = len(valid_lines)
-                matrica = np.zeros((n, n))
-                for i, line in enumerate(matriks_chiziq):
-                    if "--------------------------------------------------" in line:
-                        continue
-                    if any(c.isalpha() for c in line):
-                        continue
-                    matrica[i] = np.array(line.strip().split(), dtype=float)
-                print(matrica)###Pleeeeeeeease work.
+            # Another, hopefully working clustalo command
+                clustalo_ishla = f"clustalo -v -i {fasta_fayli} -o {clust_fayli} --outfmt=msf --threads=20 --force"
+                ##So people say this code should now work!!!! I really hope so!
+                try:
+                    subprocess.run(clustalo_ishla, shell=True, check=True)
+                    print("Clustal Omega alignment is finished. Generating the results")
+                except subprocess.CalledProcessError as e:
+                    print(f"Error running Clustal Omega: {e}")
+                # Print the alignment result to screen
+                with open(clust_fayli, "r") as f:
+                    print(f.read())
+                # Does the user wants to save the result?
+                natijani_saqla = input("Would You like to save the output? (y/n)")
+                if natijani_saqla.lower() == "y":
+                    # Saving the output file with the input protein {oqsil} name
+                    yangi_clust_fayli = f"{oqsil}_aligned.msf"
+                    os.rename(clust_fayli, yangi_clust_fayli)
+                    # Printing confirmation message
+                    print(f"Alignment result saved as {yangi_clust_fayli}.")
 
             elif keyingi_etap.lower() == 'c':
                 break
@@ -127,63 +93,39 @@ while True:
                  print(f'All {result_soni} {oqsil} fastas for {organism} have been downloaded to {oqsil}.fa')
                  with open(f'{oqsil}.fa', 'r') as oqsillar:
                      fasta_tarkibi = oqsillar.read()
-		             ##assessing the completeness of the protein(Do i really need this?)
-                     check_quality = input(f"Do you want to conduct quality check on the downloaded {oqsil} fasta file? (y/n): ")
-                     if check_quality.lower() == 'y':
-                         # checking the mean length and completeness
-                         fasta_list = fasta_tarkibi.split('>')[1:]
-                         fasta_lens = [len(fasta.split('\n', 1)[1].replace('\n', '')) for fasta in fasta_list]
-                         mean_len = np.mean(fasta_lens)
-                         print(f"Mean length of the {oqsil} fasta sequences: {mean_len} bp.")
-                         completeness = len(fasta_lens) / int(result_soni)
-                         print(f"Completeness of the {oqsil} fasta sequences: {completeness*100:.2f}%.")
-                         keyingi_etap = input('What would you like to do next? (a) Look for another protein, (b) Continue for similarity analysis, (c) Exit: ')
-                         if keyingi_etap.lower() == 'a':
-                             continue
-                         elif keyingi_etap.lower() == 'b':
-                             # path to input FASTA file
-                             yuklangan_fasta = f'{oqsil}.fa'
-                             # path to output distance matrica file
-                             yakuniy_matriks_path = 'oqsil_sim.matrica'
-                             # run Clustal Omega
-                             clustalo_ishla = f'clustalo -i {yuklangan_fasta} --outfmt=phylip --full > {yakuniy_matriks_path}'
-                             subprocess.run(clustalo_ishla, shell=True, check=True)
-                             # lets now load the distance matrica into a NumPy array
-                             with open(yakuniy_matriks_path, 'r') as f:
-                                 matriks_chiziq = f.readlines()[1:]  # skip first line
-                                 print(matriks_chiziq)  # add this line to check the contents of matriks_chiziq
-                             n = len(matriks_chiziq)
-                             matrica = np.zeros((n, n))
-                             for i, line in enumerate(matriks_chiziq):
-                                 matrica[i] = np.array(line.strip().split(), dtype=float)
-                                 # print the distance matrica
-                                 print(matrica)
-                         elif keyingi_etap.lower() == 'c':
-                             break
+		             
+                     # assessing the the length and completeness of each sequence
+                 while True:
+                     keyingi_etap = input('What would you like to do next? (a) Look for another protein, (b) Continue for similarity analysis, (c) Exit: ')
+                     if keyingi_etap.lower() == 'a':
+                         break
+                     elif keyingi_etap.lower() == 'b':
 
-                    #clarifying what exactly does user want for the next step
-                     else:
-                         keyingi_etap = input('What would you like to do next? (a) Look for another protein, (b) Continue for similarity analysis, (c) Exit: ')
-                         if keyingi_etap.lower() == 'a':
-                             continue
-                         elif keyingi_etap.lower() == 'b':
-                            ##loading the input fasta file
-                            yuklangan_fasta = f'{oqsil}.fa'
-                            #final cleaned fasta_file
-                            yakuniy_matriks_path = f'{oqsil}.matrica'
-                            # running Clustal Omega (it doesnt like me)
-                            clustalo_ishla = f'clustalo -i {yuklangan_fasta} --outfmt=phylip --full > {yakuniy_matriks_path}'
-                            subprocess.run(clustalo_ishla, shell=True, check=True)
-                            # lets now try to load the distance matrix into a NumPy array
-                            with open(yakuniy_matriks_path, 'r') as f:
-                                matriks_chiziq = f.readlines()[1:]  # skippin the first line
-                                print(matriks_chiziq)  # adding this line to check the contents of matrix_lines(chiziq is line in my lang)
-                            n = len(matriks_chiziq)
-                            matrica = np.zeros((n, n))
-                            for i, line in enumerate(matriks_chiziq):
-                                matrica[i] = np.array(line.strip().split(), dtype=float)
-                                # print the distance matrica
-                                print(matrica)
-                         elif keyingi_etap.lower() == 'c':
-                             break
-                             ###please woooooork
+
+                     # Taking the downloaded file as an input and naming the output file name
+                         fasta_fayli = f"{oqsil}.fa"
+                         clust_fayli = fasta_fayli[:-3] + ".msf"
+
+                     # Another, hopefully working clustalo command
+                         clustalo_ishla = f"clustalo -v -i {fasta_fayli} -o {clust_fayli} --outfmt=msf --threads=20 --force"
+                         ##So people say this code should now work!!!! I really hope so!
+                         try:
+                             subprocess.run(clustalo_ishla, shell=True, check=True)
+                             print("Clustal Omega alignment is finished. Generating the results")
+                         except subprocess.CalledProcessError as e:
+                             print(f"Error running Clustal Omega: {e}")
+                         # Print the alignment result to screen
+                         with open(clust_fayli, "r") as f:
+                             print(f.read())
+                         # Does the user wants to save the result?
+                         natijani_saqla = input("Would You like to save the output? (y/n)")
+                         if natijani_saqla.lower() == "y":
+                             # Saving the output file with the input protein {oqsil} name
+                             yangi_clust_fayli = f"{oqsil}_aligned.msf"
+                             os.rename(clust_fayli, yangi_clust_fayli)
+                             # Printing confirmation message
+                             print(f"Alignment result saved as {yangi_clust_fayli}.")
+ 
+                     elif keyingi_etap.lower() == 'c':
+                         break
+
