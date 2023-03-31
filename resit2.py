@@ -3,6 +3,8 @@ import pandas as pd
 import numpy as np
 import subprocess
 import re
+import matplotlib.pyplot as plt
+
 #got  my AP from NCBI, should now work
 os.environ['NCBI_API_KEY'] = 'cb6b860872dfccb5f04396d6f056d4b36c08'
 
@@ -41,8 +43,6 @@ while True:
             if keyingi_etap.lower() == 'a':
                 break
             elif keyingi_etap.lower() == 'b':
-
-
             # Again specifying the input and output files for clustalo
             ###So this code will be taking the downloaded file and creating two files
             ##one multiple sequence aligned and one distance matrix. Really dont know
@@ -51,12 +51,10 @@ while True:
             ##but could generate only the distance matrix, which shows the similarity with each
             #fasta but not separately, Still, understandable
                 fasta_fayli = f"{oqsil}.fa"
-                clust_fayli = fasta_fayli[:-3] + ".clustal"
+                clust_fayli = fasta_fayli[:-3] + ".msf"
                 dist_fayli = f"{oqsil}.dist"
-
                 # Generating dist matrix with the similarity scores for sequence
                 clustalo_ishla = f"clustalo -v -i {fasta_fayli} -o {clust_fayli} --outfmt=msf --threads=20 --force --full --distmat-out={dist_fayli}"
-
                 try:
                     subprocess.run(clustalo_ishla, shell=True, check=True, capture_output=True, text=True)
                     print("Clustal Omega alignment is finished. Generating the results. Please wait")
@@ -73,11 +71,9 @@ while True:
                         print(f.read())
                 except subprocess.CalledProcessError as e:
                     print(f"Unfortunately, there was an error running Clustal Omega: {e}")
-
                 # Visualising the aligned sequences to the screen
                 with open(clust_fayli, "r") as f:
                     print(f.read())
-
                 #Clarifying whether the user wants the result to be saved?
                 natijani_saqla = input("Would you like to save the output? (y/n)")
                 #if the user wants to save then downloading results into two different files
@@ -85,13 +81,35 @@ while True:
                 if natijani_saqla.lower() == "y":
                     # At this point we are saving the output files with the protein {oqsil} name
                     ##clustal one
-                    yangi_clust_fayli = f"{oqsil}_aligned.msf"
+                    yangi_clust_fayli = f"{oqsil}.msf"
                     os.rename(clust_fayli, yangi_clust_fayli)
                     print(f"Alignment result saved as {yangi_clust_fayli}.")
                     ###and the dist matrix
-                    yangi_dist_fayli = f"{oqsil}_dist.matrix"
+                    yangi_dist_fayli = f"{oqsil}.matrix"
                     os.rename(dist_fayli, yangi_dist_fayli)
                     print(f"Distance matrix saved as {yangi_dist_fayli}.")
+                    # Prompt the user to plot the level of conservation between protein sequences
+                    plot_con = input("Do you want to plot the level of conservation between protein sequences? (y/n): ")
+
+                    if plot_con.lower() == "y":
+                        # Run the command to plot conservation level
+                        conservation_plot = f"plotcon -sformat msf {yangi_clust_fayli} -winsize 16 -graph pdf"
+                        os.system(conservation_plot)
+                        print("Conservation plot generated.")
+
+                    # Ask the user if they want to analyze another protein/the same protein for another txid or exit
+                    analyze_another = input("Do you want to analyze another protein/the same protein for another txid or exit? (a/n/e): ")
+
+                    if analyze_another.lower() == "a":
+                        continue
+                    elif analyze_another.lower() == "n":
+                        break
+                    elif analyze_another.lower() == "e":
+                        print("Thank you for using OQSIL.")
+                        break
+                    else:
+                        print("Invalid input. Please enter 'a' to analyze another protein/the same protein for another txid, 'n' to exit, or 'e' to exit.")
+
 
             elif keyingi_etap.lower() == 'c':
                 break
@@ -126,47 +144,48 @@ while True:
                      if keyingi_etap.lower() == 'a':
                          break
                      elif keyingi_etap.lower() == 'b':
-                        fasta_fayli = f"{oqsil}.fa"
-                        clust_fayli = fasta_fayli[:-3] + ".clustal"
-                        dist_fayli = f"{oqsil}.dist"
+                         fasta_fayli = f"{oqsil}.fa"
+                         clust_fayli = fasta_fayli[:-3] + ".msf"
+                         dist_fayli = f"{oqsil}.dist"
 
-                        # Generating dist matrix with the similarity scores for sequence
-                        clustalo_ishla = f"clustalo -v -i {fasta_fayli} -o {clust_fayli} --outfmt=msf --threads=20 --force --full --distmat-out={dist_fayli}"
+                         # Generating dist matrix with the similarity scores for sequence
+                         clustalo_ishla = f"clustalo -v -i {fasta_fayli} -o {clust_fayli} --outfmt=msf --threads=20 --force --full --distmat-out={dist_fayli}"
 
-                        try:
-                            subprocess.run(clustalo_ishla, shell=True, check=True, capture_output=True, text=True)
-                            print("Clustal Omega alignment is finished. Generating the results. Please wait")
-                            # Taking out  similarity scores from the generated results
-                            similarity_scores = []
-                            with open(clust_fayli, "r") as f:
-                                for line in f:
-                                    if line.startswith('#'):
-                                        score = float(line.split(':')[-1].strip())
-                                        similarity_scores.append(f"{score:.2%}")
-                            print(f"Similarity scores between fastas: {similarity_scores}")
-                            # Distance matrix going to screen and might be saved as file at a later stage
-                            with open(dist_fayli, "r") as f:
-                                print(f.read())
-                        except subprocess.CalledProcessError as e:
-                            print(f"Unfortunately, there was an error running Clustal Omega: {e}")
+                         try:
+                             subprocess.run(clustalo_ishla, shell=True, check=True, capture_output=True, text=True)
+                             print("Clustal Omega alignment is finished. Generating the results. Please wait")
+                             # Taking out  similarity scores from the generated results
+                             similarity_scores = []
+                             with open(clust_fayli, "r") as f:
+                                 for line in f:
+                                     if line.startswith('#'):
+                                         score = float(line.split(':')[-1].strip())
+                                         similarity_scores.append(f"{score:.2%}")
+                             print(f"Similarity scores between fastas: {similarity_scores}")
+                             # Distance matrix going to screen and might be saved as file at a later stage
+                             with open(dist_fayli, "r") as f:
+                                 print(f.read())
+                         except subprocess.CalledProcessError as e:
+                             print(f"Unfortunately, there was an error running Clustal Omega: {e}")
 
-                        # Visualising the aligned sequences to the screen
-                        with open(clust_fayli, "r") as f:
-                            print(f.read())
+                         # Visualising the aligned sequences to the screen
+                         with open(clust_fayli, "r") as f:
+                             print(f.read())
 
-                        #Clarifying whether the user wants the result to be saved?
-                        natijani_saqla = input("Would you like to save the output? (y/n)")
-                        #if the user wants to save then downloading results into two different files
-                        #the aligned pairs and the distance matrix
-                        if natijani_saqla.lower() == "y":
-                            # At this point we are saving the output files with the protein {oqsil} name
-                            ##clustal one
-                            yangi_clust_fayli = f"{oqsil}_aligned.msf"
-                            os.rename(clust_fayli, yangi_clust_fayli)
-                            print(f"Alignment result saved as {yangi_clust_fayli}.")
-                            ###and the dist matrix
-                            yangi_dist_fayli = f"{oqsil}_dist.matrix"
-                            os.rename(dist_fayli, yangi_dist_fayli)
-                            print(f"Distance matrix saved as {yangi_dist_fayli}.")
+                         #Clarifying whether the user wants the result to be saved?
+                         natijani_saqla = input("Would you like to save the output? (y/n)")
+                         #if the user wants to save then downloading results into two different files
+                         #the aligned pairs and the distance matrix
+                         if natijani_saqla.lower() == "y":
+                             # At this point we are saving the output files with the protein {oqsil} name
+                             ##clustal one
+                             yangi_clust_fayli = f"{oqsil}.msf"
+                             os.rename(clust_fayli, yangi_clust_fayli)
+                             print(f"Alignment result saved as {yangi_clust_fayli}.")
+                             ###and the dist matrix
+                             yangi_dist_fayli = f"{oqsil}.matrix"
+                             os.rename(dist_fayli, yangi_dist_fayli)
+                             print(f"Distance matrix saved as {yangi_dist_fayli}.")
+
                      elif keyingi_etap.lower() == 'c':
                          break
