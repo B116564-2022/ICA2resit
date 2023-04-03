@@ -13,16 +13,19 @@ while True:
     oqsil = input("Please enter the name of the protein you would like to analyze: ")
     takson = input("Please enter the Taxon ID(txid): ")
     ##Winning some time
-    print("Connecting to NCBI")
-    print(f"Searching for {oqsil} fastas for txid{takson}")
+    print(f">Connecting to NCBI\n\n>Searching for {oqsil} fastas for txid{takson}")
     # sending request to ncbi for the with protein name and takson
     query = f'{oqsil}[Protein Name] AND txid{takson}[Organism]'
     search_cmd = f'esearch -db protein -query "{query}" | efetch -format fasta'
     ##calculating the number of found fastas
     result_soni = os.popen(f'{search_cmd} | grep ">" | wc -l').read().strip()
     # clarifying whether user they wants to download all fastas
-    print("Generating results")
-    print(f'Overall:{result_soni} {oqsil} fastas found')
+    if result_soni == "0":
+        print("Error: No results found for the specified organism or txid. \nEither there is no fastas presented for this specific protein and/or txid. \nPlease check https://www.ncbi.nlm.nih.gov/, specifying protein {oqsil} and txid{txid}\n \nIf these data are presented in NCBI, then Please check your input and try again. \nLets start from the beginning!!!")
+        continue
+    else:
+        print(f">Generating results \nOverall:{result_soni} {oqsil} fastas found. \nPLEASE KEEP IN MIND. If the number of proteins is too high, further generated results, might be not that much beautiful and informative as You expect")
+    
     #Downloading all what user wants if he/she wants
     skachay_vsyo = input(f'Do you want to download all of the {oqsil} fastas for for txid {takson} ? (y/n): ')
 
@@ -68,11 +71,7 @@ while True:
             elif keyingi_etap.lower() == 'b':
             # Again specifying the input and output files for clustalo
             ###So this code will be taking the downloaded file and creating two files
-            ##one multiple sequence aligned and one distance matrix. Really dont know
-            ##how else i can do it to work like show first names of two prot pairs AND
-            ##then how similar of different are they
-            ##but could generate only the distance matrix, which shows the similarity with each
-            #fasta but not separately, Still, understandable
+            ##one multiple sequence aligned and one distance matrix. 
                 fasta_fayli = f"{oqsil}.fa"
                 clust_fayli = fasta_fayli[:-3] + ".msf"
                 dist_fayli = f"{oqsil}.dist"
@@ -134,11 +133,15 @@ while True:
                         # asking the  user if they want to compare protein motifs
                         compare_motifs = input("Do you want to identify protein motifs in your set? (y/n): ")
                         if compare_motifs.lower() == "y":
-                            # Set the path to the patmatmotifs command
+                            # Setting the path to the patmatmotifs command
+                            
                             patmatmotifs_path = "/usr/bin/patmatmotifs"
+                            #The output will look like this
                             oqsil_patmat=f"{oqsil}.patmatmotifs"
+                            #Tho patmat command itself
                             patmatmotifs_cmd = f"patmatmotifs -sequence {yangi_clust_fayli} -outfile {oqsil_patmat} -full"
                             print(patmatmotifs_cmd)  # Check the command before running it
+                            #Running the command, fingers crossed
                             try:
                                 subprocess.run(patmatmotifs_cmd, shell=True, check=True)
                                 print("patmatmotifs finished successfully.")
@@ -179,7 +182,11 @@ while True:
              search_cmd = f'esearch -db protein -query "{query}" | efetch -format fasta'
              #counting the number of found results
              result_soni = os.popen(f'{search_cmd} | grep ">" | wc -l').read().strip()
-             print(f'Number of results found for {organism}: {result_soni}')
+             if result_soni == "0":
+                 print("Error: No results found for the specified organism or txid. \nEither there are no fastas presented for this specific protein and/or txid. \nPlease check https://www.ncbi.nlm.nih.gov/ specifying protein {oqsil}, species {organism}\nIf these data are presented in NCBI, then Please check your input and try again. \nLets start again!")
+                 continue
+             else:
+                 print(f'Number of results found for {organism}: {result_soni}\n PLEASE KEEP IN MIND. If the number of proteins is too high, further generated results, might be not that much beautiful and informative as You expect')
              #again giving a word to user()
              download_spec = input(f'Do you want to download all {result_soni} {oqsil} fastas for {organism}? (y/n): ')
              if download_spec.lower() == 'y': # downloading filteres fastas
