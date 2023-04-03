@@ -1,8 +1,6 @@
 import os
 import pandas as pd
-import numpy as np
 import subprocess
-import re
 import matplotlib.pyplot as plt
 
 #got  my AP from NCBI, should now work
@@ -29,19 +27,44 @@ while True:
     skachay_vsyo = input(f'Do you want to download all of the {oqsil} fastas for for txid {takson} ? (y/n): ')
 
     if skachay_vsyo.lower() == 'y':
-        print("Downloading all the fastas")
+        print("\n>Downloading all the fastas")
         # downloading all fastas
         skachivaem = f'{search_cmd} > {oqsil}.fa'
         os.system(skachivaem)
         ##Saving the  output
-        print(f'All {result_soni} fastas for txid {takson} have been saved to {oqsil}.fa')
+        print(f'\n\n>All {result_soni} fastas for txid {takson} have been saved to {oqsil}.fa')
+        
+        oqsillar = f"{oqsil}.fa"                              
+        with open(oqsillar, "r") as f:
+            lines = f.readlines()  
+        # Creating a dictionary to hold the protein names and their sequences
+        proteins = {}
+        for line in lines:
+            if line.startswith(">"):
+                protein_name = line.strip()[1:]
+                proteins[protein_name] = ""
+            else:
+                proteins[protein_name] += line.strip()
+        
+	    #MIN/MAX/MEAN
+                
+                
+        # Creating a pandas DataFrame from the dictionary
+        oqsilcha = pd.DataFrame.from_dict(proteins, orient="index", columns=["Sequence"])
+        # Counting the number of nucleotides for each protein
+        oqsilcha["Nucleotide Count"] = oqsilcha["Sequence"].apply(len)
+        smallest_one = oqsilcha["Nucleotide Count"].min()
+        longest_one = oqsilcha["Nucleotide Count"].max()
+        oqsil_mean_length = oqsilcha["Nucleotide Count"].mean()
+        print(f"The min. length of these fastas is {smallest_one} bp and the longest sequence comprises of {longest_one} bp. \n Mean length of {oqsil} sequences is {oqsil_mean_length} bp")
+                           
         with open(f'{oqsil}.fa', 'r') as oqsillar:
-            fasta_tarkibi = oqsillar.read()
-	    # assessing the the length and completeness of each sequence
+            fasta_tarkibi = oqsillar.read()     
+
         while True:
-            keyingi_etap = input('What would you like to do next? (a) Look for another protein, (b) Continue for similarity analysis, (c) Exit: ')
+            keyingi_etap = input('\n\n>>>What would you like to do next? (a) Look for another protein, (b) Continue for similarity analysis, (c) Exit: ')
             if keyingi_etap.lower() == 'a':
-                break
+                continue
             elif keyingi_etap.lower() == 'b':
             # Again specifying the input and output files for clustalo
             ###So this code will be taking the downloaded file and creating two files
@@ -53,11 +76,13 @@ while True:
                 fasta_fayli = f"{oqsil}.fa"
                 clust_fayli = fasta_fayli[:-3] + ".msf"
                 dist_fayli = f"{oqsil}.dist"
-                # Generating dist matrix with the similarity scores for sequence
+                # Generating Clustalo matrix with the similarity scores for sequence
+                clustalo_path = "/usr/bin/clustalo"
+                os.environ["PATH"] += os.pathsep + clustalo_path
                 clustalo_ishla = f"clustalo -v -i {fasta_fayli} -o {clust_fayli} --outfmt=msf --threads=20 --force --full --distmat-out={dist_fayli}"
                 try:
                     subprocess.run(clustalo_ishla, shell=True, check=True, capture_output=True, text=True)
-                    print("Clustal Omega alignment is finished. Generating the results. Please wait")
+                    print("\n\n>>>Clustal Omega alignment is finished. Generating the results. Please wait")
                     # Taking out  similarity scores from the generated results
                     similarity_scores = []
                     with open(clust_fayli, "r") as f:
@@ -87,16 +112,43 @@ while True:
                     ###and the dist matrix
                     yangi_dist_fayli = f"{oqsil}.matrix"
                     os.rename(dist_fayli, yangi_dist_fayli)
-                    print(f"Distance matrix saved as {yangi_dist_fayli}.")
+                    print(f"Similarity scores saved as {yangi_dist_fayli}.")
                     # Prompt the user to plot the level of conservation between protein sequences
                     plot_con = input("Do you want to plot the level of conservation between protein sequences? (y/n): ")
 
                     if plot_con.lower() == "y":
                         # Run the command to plot conservation level
-                        conservation_plot = f"plotcon -sformat msf {yangi_clust_fayli} -winsize 16 -graph pdf"
-                        os.system(conservation_plot)
-                        print("Conservation plot generated.")
-
+                        conservation_plotting = f"plotcon -sformat msf {yangi_clust_fayli} -winsize 16 -graph pdf"
+                        
+                        os.system(conservation_plotting)
+                        # view the generated PDF file on screen
+                        view_pdf = "gs plotcon.pdf"
+                        os.system(view_pdf)
+                        # Display the plot
+                        plt.show()
+                        print("Conservation plot saved as plotcon.pdf")
+                       
+                        ### PATMATMOTIFS 
+                       
+                        
+                        # asking the  user if they want to compare protein motifs
+                        compare_motifs = input("Do you want to identify protein motifs in your set? (y/n): ")
+                        if compare_motifs.lower() == "y":
+                            # Set the path to the patmatmotifs command
+                            patmatmotifs_path = "/usr/bin/patmatmotifs"
+                            oqsil_patmat=f"{oqsil}.patmatmotifs"
+                            patmatmotifs_cmd = f"patmatmotifs -sequence {yangi_clust_fayli} -outfile {oqsil_patmat} -full"
+                            print(patmatmotifs_cmd)  # Check the command before running it
+                            try:
+                                subprocess.run(patmatmotifs_cmd, shell=True, check=True)
+                                print("patmatmotifs finished successfully.")
+                                print(f"The results saved into {oqsil}.patmatmotifs")
+                            except subprocess.CalledProcessError as e:
+                                print(f"Error running patmatmotifs: {e}")
+                    
+                    
+                    
+                    
                     # Ask the user if they want to analyze another protein/the same protein for another txid or exit
                     analyze_another = input("Do you want to analyze another protein/the same protein for another txid or exit? (a/n/e): ")
 
@@ -135,6 +187,32 @@ while True:
                  skachivaem = f'{search_cmd} > {oqsil}.fa'
                  os.system(skachivaem)
                  print(f'All {result_soni} {oqsil} fastas for {organism} have been downloaded to {oqsil}.fa')
+                 
+                 
+                 oqsillar = f"{oqsil}.fa"                              
+                 with open(oqsillar, "r") as f:
+                     lines = f.readlines()  
+                 # Creating a dictionary to hold the protein names and their sequences
+                 proteins = {}
+                 for line in lines:
+                     if line.startswith(">"):
+                         protein_name = line.strip()[1:]
+                         proteins[protein_name] = ""
+                     else:
+                         proteins[protein_name] += line.strip()
+
+                 #MIN/MAX/MEAN
+                         
+                         
+                 # Creating a pandas DataFrame from the dictionary
+                 oqsilcha = pd.DataFrame.from_dict(proteins, orient="index", columns=["Sequence"])
+                 # Counting the number of nucleotides for each protein
+                 oqsilcha["Nucleotide Count"] = oqsilcha["Sequence"].apply(len)
+                 smallest_one = oqsilcha["Nucleotide Count"].min()
+                 longest_one = oqsilcha["Nucleotide Count"].max()
+                 oqsil_mean_length = oqsilcha["Nucleotide Count"].mean()
+                 print(f"The min. length of these fastas is {smallest_one} bp and the longest sequence comprises of {longest_one} bp. \n Mean length of {oqsil} sequences is {oqsil_mean_length} bp")
+                                    
                  with open(f'{oqsil}.fa', 'r') as oqsillar:
                      fasta_tarkibi = oqsillar.read()
 
@@ -142,12 +220,11 @@ while True:
                  while True:
                      keyingi_etap = input('What would you like to do next? (a) Look for another protein, (b) Continue for similarity analysis, (c) Exit: ')
                      if keyingi_etap.lower() == 'a':
-                         break
+                         continue
                      elif keyingi_etap.lower() == 'b':
                          fasta_fayli = f"{oqsil}.fa"
                          clust_fayli = fasta_fayli[:-3] + ".msf"
                          dist_fayli = f"{oqsil}.dist"
-
                          # Generating dist matrix with the similarity scores for sequence
                          clustalo_ishla = f"clustalo -v -i {fasta_fayli} -o {clust_fayli} --outfmt=msf --threads=20 --force --full --distmat-out={dist_fayli}"
 
@@ -181,11 +258,62 @@ while True:
                              ##clustal one
                              yangi_clust_fayli = f"{oqsil}.msf"
                              os.rename(clust_fayli, yangi_clust_fayli)
-                             print(f"Alignment result saved as {yangi_clust_fayli}.")
+                             print(f"\nAlignment result saved as {yangi_clust_fayli}.")
                              ###and the dist matrix
                              yangi_dist_fayli = f"{oqsil}.matrix"
                              os.rename(dist_fayli, yangi_dist_fayli)
-                             print(f"Distance matrix saved as {yangi_dist_fayli}.")
+                             print(f"Similarity scores saved as {yangi_dist_fayli}.")
+                             # Prompt the user to plot the level of conservation between protein sequences
+                             
+                             plot_con = input("\nDo you want to plot the level of conservation between protein sequences? (y/n): ")
+                        
+                             if plot_con.lower() == "y":
+                                # Visualising the plot of conservation level on screen
+                                 conservation_plotting = f"plotcon -sformat msf {yangi_clust_fayli} -winsize 16 -graph pdf" 
+                                 os.system(conservation_plotting)
+                                 # view the generated PDF file on screen
+                                 view_pdf = "gs plotcon.pdf"
+                                 os.system(view_pdf)
+                                 # Display the plot
+                                 plt.show()
+                                 print("Conservation plot saved as plotcon.pdf")
+                               
+                                 
+                              
+                                
+                              #PATMATMOTIFS
+                                
+                               
+                                
+                               
+                                # asking the  user if they want to compare protein motifs
+                                 compare_motifs = input("Do you want to identify protein motifs in your set? (y/n): ")
+                                 if compare_motifs.lower() == "y":
+                                     # Set the path to the patmatmotifs command
+                                     patmatmotifs_path = "/usr/bin/patmatmotifs"
+                                     oqsil_patmat=f"{oqsil}.patmatmotifs"
+                                     patmatmotifs_cmd = f"patmatmotifs -sequence {yangi_clust_fayli} -outfile {oqsil_patmat}"
+                                     print(patmatmotifs_cmd)  # Check the command before running it
+                                     try:
+                                         subprocess.run(patmatmotifs_cmd, shell=True, check=True)
+                                         print("patmatmotifs finished successfully.")
+                                         print(f"The results saved into {oqsil}.patmatmotifs")
+                                     except subprocess.CalledProcessError as e:
+                                         print(f"Error running patmatmotifs: {e}")
 
+                           
+                            
+                           # Asking the user, if they want to analyze another protein/the same protein for another txid or exit
+                             analyze_another = input("Do you want to analyze another protein/the same protein for another txid or exit? (a/n/e): ")
+                        
+                             if analyze_another.lower() == "a":
+                                 continue
+                             elif analyze_another.lower() == "n":
+                                 break
+                             elif analyze_another.lower() == "e":
+                                 print("Thank you for using OQSIL.")
+                                 break
+                             else:
+                                 print("Invalid input. Please enter 'a' to analyze another protein/the same protein for another txid, 'n' to exit, or 'e' to exit.")
                      elif keyingi_etap.lower() == 'c':
                          break
