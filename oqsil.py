@@ -4,6 +4,7 @@ import os
 import pandas as pd
 import subprocess
 import matplotlib.pyplot as plt
+import requests
 
 #got  my AP from NCBI, should now work
 os.environ['NCBI_API_KEY'] = 'cb6b860872dfccb5f04396d6f056d4b36c08'
@@ -310,9 +311,52 @@ while True:
                                          print(f"The results saved into {oq_prot}.patmatmotifs")
                                      except subprocess.CalledProcessError as e:
                                          print(f"Error running patmatmotifs: {e}")
+                         ##########      
+                                         
 
-                           
-                            
+#I want to functionally annotate the protein sequence that i had, and the panther seems to work well but not from here. Needs further development. 
+
+                                     # # Defining the PANTHER and data to be sent in the request
+                                     # pantera_link= "https://pantherdb.org/services/oai/pantherdb/enrich/overrep.json"
+                                     # datasets_link = "https://pantherdb.org/services/oai/pantherdb/supportedannotdatasets"
+                                     # references = "PANTHER GO-Slim Biological Process"
+                                     # outp_fmt = "tsv"
+                                     # pval_cut = 0.05
+                                    
+                                     # # Extracting  datasets for annotating
+                                     # otvet = requests.get(datasets_link)
+                                     # if otvet.status_code != 200:
+                                     #     print(f"Error: PANTHER request failed with status code {otvet.status_code}")
+                                     #     exit()
+                                     
+                                     # # Print them
+                                     # datasets = otvet.json()["result"]["supportedAnnotDataSets"]
+                                     # for dataset in datasets:
+                                     #     print(dataset)
+                                    
+                                     # # Sending the POST request to PANTHER to see what happens
+                                     # data = {
+                                     #     "sequence": yangi_clustalo,
+                                     #     "organism": organizm,
+                                     #     "referenceList": references,
+                                     #     "outputFormat": outp_fmt,
+                                     #     "pvalueCutoff": pval_cut,
+                                     # }
+                                    
+                                     # response = requests.post(pantera_link, data=data)
+                                    
+                                     # # Check if the request was successful
+                                     # if response.status_code != 200:
+                                     #     print(f"Error: PANTHER didnt work {response.status_code}")
+                                     #     exit()
+                                    
+                                     # # Functionally annotating the sequences
+                                     # characterise = response.text.strip().split("\n")
+                                     # for annotation in characterise:
+                                     #     print(characterise)
+
+                                         
+                     ################                 
                            # Asking the user, if they want to analyze another protein/the same protein for another txid or exit
                              another_search = input("Do you want to analyze another protein/the same protein for another txid or exit? (a/n/e): ")
                         
@@ -327,3 +371,4 @@ while True:
                                  print("Invalid input. Please enter 'a' to analyze another protein/the same protein for another txid, 'n' to exit, or 'e' to exit.")
                      elif keyingi_etap.lower() == 'c':
                          break
+
