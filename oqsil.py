@@ -161,13 +161,15 @@ while True:
                                         seq_id = header.split()[0]
                                         with open(f"{seq_id}.fasta", "w") as f:
                                             f.write(">" + fasta)
-                            #pepinfo is here
+                            #setting the pepinfor directory
                             pepinfo_dir = "/usr/bin/pepinfo"
-                            #the output will be like this
+                            #fasta output be like this
                             fasta_files=glob("*.fasta")
-                        
+                            #fasta file names going to screen                       
                             print(fasta_files)
                             # sys.exit()
+                             ##So i decided it to take the input from the user, as the code above generated the fastas and sends them to screen
+
                             user_fasta=input("Please enter the file name of any protein sequence \njust created in current dir, which you would like to analyse\nJust copy paste any sequence from the list above!\n>>>")
                             pepinfo_dir = "/usr/bin/pepinfo"
                             #the output will be like this 
@@ -363,12 +365,13 @@ while True:
                                     
                                      print(fasta_files)
                                      # sys.exit()
+                                     ##So i decided it to take the input from the user, as the code above generated the fastas and sends them to screen
                                      user_fasta=input("Please enter the file name of any protein sequence \njust created in current dir, which you would like to analyse\nJust copy paste any sequence from the list above!\n>>>")
                                      print("Just copy paste any sequence from the list above!)")
                                      pepinfo_dir = "/usr/bin/pepinfo"
-                                     #the output will be like this 
+                                     #the generated outputs be like this and saved as protein name.pepinfo 
                                      pep_file=f"{oq_prot}.pepinfo"
-                                     #and the command itself as this
+                                     #while being processed with this command
                                      pepinfo_cmd=f"pepinfo -sequence {user_fasta} -outfile {pep_file} -graph pdf"
                                      print(pepinfo_cmd)
                                      try:
