@@ -4,7 +4,7 @@ import os
 import pandas as pd
 import subprocess
 import matplotlib.pyplot as plt
-import requests
+from glob import glob
 
 #got  my AP from NCBI, should now work
 os.environ['NCBI_API_KEY'] = 'cb6b860872dfccb5f04396d6f056d4b36c08'
@@ -154,20 +154,35 @@ while True:
                             pepinfo = input("Would You like to analyse the chemical properties of your proteins as well? (y/n):")
                             
                             if pepinfo.lower()=="y":
+                                with open(f"{oq_prot}.fa", "r") as f:
+                                    content = f.read().split(">")[1:]
+                                    for fasta in content:
+                                        header = fasta.split("\n", 1)[0].strip()
+                                        seq_id = header.split()[0]
+                                        with open(f"{seq_id}.fasta", "w") as f:
+                                            f.write(">" + fasta)
                             #pepinfo is here
-                                pepinfo_dir = "/usr/bin/pepinfo"
-                                #the output will be like this 
-                                pep_file=f"{oq_prot}.pepinfo"
-                             #and the command itself as this
-                                pepinfo_cmd=f"pepinfo -sequence {fasta_fayli} -outfile {pep_file} -graph pdf"
-                                print(pepinfo_cmd)
-                                try:
-                                    subprocess.run(pepinfo_cmd, shell=True, check=True)
-                                    print("Pepinfo finished successfully.")
-                                    print("The results saved into pepinfo.pdf")
-                    
-                                except subprocess.CalledProcessError as e:
-                                    print(f"Error running pepinfo: {e}")
+                            pepinfo_dir = "/usr/bin/pepinfo"
+                            #the output will be like this
+                            fasta_files=glob("*.fasta")
+                        
+                            print(fasta_files)
+                            # sys.exit()
+                            user_fasta=input("Please enter the file name of any protein sequence \njust created in current dir, which you would like to analyse\nJust copy paste any sequence from the list above!\n>>>")
+                            pepinfo_dir = "/usr/bin/pepinfo"
+                            #the output will be like this 
+                            pep_file=f"{oq_prot}.pepinfo"
+                            #and the command itself as this
+                            pepinfo_cmd=f"pepinfo -sequence {user_fasta} -outfile {pep_file} -graph pdf"
+                            print(pepinfo_cmd)
+                            try:
+                                subprocess.run(pepinfo_cmd, shell=True, check=True)
+                                print("Pepinfo finished successfully.")
+                                print("The results saved into pepinfo.pdf")
+                                print("Thanks for using this tool! Hope it will be helpful!")
+                            except subprocess.CalledProcessError as e:
+                                print(f"Error running pepinfo: {e}")
+                        #    break 
                 
                     
                     
@@ -334,20 +349,39 @@ while True:
                                      pepinfo = input("Would You like to analyse the chemical properties of your proteins as well? (y/n): ")
                                     
                                      if pepinfo.lower()=="y":
+                                         with open(f"{oq_prot}.fa", "r") as f:
+                                             content = f.read().split(">")[1:]
+                                             for fasta in content:
+                                                 header = fasta.split("\n", 1)[0].strip()
+                                                 seq_id = header.split()[0]
+                                                 with open(f"{seq_id}.fasta", "w") as f:
+                                                     f.write(">" + fasta)
                                      #pepinfo is here
-                                         pepinfo_dir = "/usr/bin/pepinfo"
-                                         #the output will be like this 
-                                         pep_file=f"{oq_prot}.pepinfo"
-                                      #and the command itself as this
-                                         pepinfo_cmd=f"pepinfo -sequence {fasta_fayli} -outfile {pep_file} -graph pdf"
-                                         print(pepinfo_cmd)
-                                         try:
-                                             subprocess.run(pepinfo_cmd, shell=True, check=True)
-                                             print("Pepinfo finished successfully.")
-                                             print("The results saved into pepinfo.pdf")
-                                             print("Thanks for using this tool! Hope it will be helpful!")
-                                         except subprocess.CalledProcessError as e:
-                                             print(f"Error running pepinfo: {e}")
+                                     pepinfo_dir = "/usr/bin/pepinfo"
+                                     #the output will be like this
+                                     fasta_files=glob("*.fasta")
+                                    
+                                     print(fasta_files)
+                                     # sys.exit()
+                                     user_fasta=input("Please enter the file name of any protein sequence \njust created in current dir, which you would like to analyse\nJust copy paste any sequence from the list above!\n>>>")
+                                     print("Just copy paste any sequence from the list above!)")
+                                     pepinfo_dir = "/usr/bin/pepinfo"
+                                     #the output will be like this 
+                                     pep_file=f"{oq_prot}.pepinfo"
+                                     #and the command itself as this
+                                     pepinfo_cmd=f"pepinfo -sequence {user_fasta} -outfile {pep_file} -graph pdf"
+                                     print(pepinfo_cmd)
+                                     try:
+                                         subprocess.run(pepinfo_cmd, shell=True, check=True)
+                                         print("Pepinfo finished successfully.")
+                                         print("The results saved into pepinfo.pdf")
+                                         print("Thanks for using this tool! Hope it will be helpful!")
+                                     except subprocess.CalledProcessError as e:
+                                         print(f"Error running pepinfo: {e}")
+                                    #    break 
+                                    
+
+
                                          
                      ################                 
                            # Asking the user, if they want to analyze another protein/the same protein for another txid or exit
