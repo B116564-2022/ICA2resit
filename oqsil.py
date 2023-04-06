@@ -38,8 +38,7 @@ while True:
         yuklab_olamiz = f'{qidiruv_komandasi} > {oq_prot}.fa'
         os.system(yuklab_olamiz)
         ##Saving the  output
-        print(f'\n\n>All {kolichestvo} fastas for txid {takson} have been saved to {oq_prot}.fa')
-        
+        print(f'\n\n>All {kolichestvo} fastas for txid {takson} have been saved to {oq_prot}.fa')           
         oq_protlar = f"{oq_prot}.fa"                              
         with open(oq_protlar, "r") as f:
             lines = f.readlines()  
@@ -151,7 +150,25 @@ while True:
                                 print(f"The results saved into {oq_prot}.patmatmotifs")
                             except subprocess.CalledProcessError as e:
                                 print(f"Error running patmatmotifs: {e}")
+                                #To analyse the chemical properties of aminoacid content in the proteins i decided to utilise pepinfo
+                            pepinfo = input("Would You like to analyse the chemical properties of your proteins as well? (y/n):")
+                            
+                            if pepinfo.lower()=="y":
+                            #pepinfo is here
+                                pepinfo_dir = "/usr/bin/pepinfo"
+                                #the output will be like this 
+                                pep_file=f"{oq_prot}.pepinfo"
+                             #and the command itself as this
+                                pepinfo_cmd=f"pepinfo -sequence {fasta_fayli} -outfile {pep_file} -graph pdf"
+                                print(pepinfo_cmd)
+                                try:
+                                    subprocess.run(pepinfo_cmd, shell=True, check=True)
+                                    print("Pepinfo finished successfully.")
+                                    print("The results saved into pepinfo.pdf")
                     
+                                except subprocess.CalledProcessError as e:
+                                    print(f"Error running pepinfo: {e}")
+                
                     
                     
                     
@@ -311,50 +328,26 @@ while True:
                                          print(f"The results saved into {oq_prot}.patmatmotifs")
                                      except subprocess.CalledProcessError as e:
                                          print(f"Error running patmatmotifs: {e}")
-                         ##########      
+                                         ##########      
                                          
-
-#I want to functionally annotate the protein sequence that i had, and the panther seems to work well but not from here. Needs further development. 
-
-                                     # # Defining the PANTHER and data to be sent in the request
-                                     # pantera_link= "https://pantherdb.org/services/oai/pantherdb/enrich/overrep.json"
-                                     # datasets_link = "https://pantherdb.org/services/oai/pantherdb/supportedannotdatasets"
-                                     # references = "PANTHER GO-Slim Biological Process"
-                                     # outp_fmt = "tsv"
-                                     # pval_cut = 0.05
+                                    #To analyse the chemical properties of aminoacid content in the proteins i decided to utilise pepinfo
+                                     pepinfo = input("Would You like to analyse the chemical properties of your proteins as well? (y/n): ")
                                     
-                                     # # Extracting  datasets for annotating
-                                     # otvet = requests.get(datasets_link)
-                                     # if otvet.status_code != 200:
-                                     #     print(f"Error: PANTHER request failed with status code {otvet.status_code}")
-                                     #     exit()
-                                     
-                                     # # Print them
-                                     # datasets = otvet.json()["result"]["supportedAnnotDataSets"]
-                                     # for dataset in datasets:
-                                     #     print(dataset)
-                                    
-                                     # # Sending the POST request to PANTHER to see what happens
-                                     # data = {
-                                     #     "sequence": yangi_clustalo,
-                                     #     "organism": organizm,
-                                     #     "referenceList": references,
-                                     #     "outputFormat": outp_fmt,
-                                     #     "pvalueCutoff": pval_cut,
-                                     # }
-                                    
-                                     # response = requests.post(pantera_link, data=data)
-                                    
-                                     # # Check if the request was successful
-                                     # if response.status_code != 200:
-                                     #     print(f"Error: PANTHER didnt work {response.status_code}")
-                                     #     exit()
-                                    
-                                     # # Functionally annotating the sequences
-                                     # characterise = response.text.strip().split("\n")
-                                     # for annotation in characterise:
-                                     #     print(characterise)
-
+                                     if pepinfo.lower()=="y":
+                                     #pepinfo is here
+                                         pepinfo_dir = "/usr/bin/pepinfo"
+                                         #the output will be like this 
+                                         pep_file=f"{oq_prot}.pepinfo"
+                                      #and the command itself as this
+                                         pepinfo_cmd=f"pepinfo -sequence {fasta_fayli} -outfile {pep_file} -graph pdf"
+                                         print(pepinfo_cmd)
+                                         try:
+                                             subprocess.run(pepinfo_cmd, shell=True, check=True)
+                                             print("Pepinfo finished successfully.")
+                                             print("The results saved into pepinfo.pdf")
+                                             print("Thanks for using this tool! Hope it will be helpful!")
+                                         except subprocess.CalledProcessError as e:
+                                             print(f"Error running pepinfo: {e}")
                                          
                      ################                 
                            # Asking the user, if they want to analyze another protein/the same protein for another txid or exit
