@@ -365,7 +365,7 @@ while True:
                              elif another_search.lower() == "n":
                                  break
                              elif another_search.lower() == "e":
-                                 print("Thank you for using oq_prot.")
+                                 print("Thank you for using OQSIL! BYE!")
                                  break
                              else:
                                  print("Invalid input. Please enter 'a' to analyze another protein/the same protein for another txid, 'n' to exit, or 'e' to exit.")
